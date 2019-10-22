@@ -1,0 +1,37 @@
+{
+  "name": "eth-receipts-exporter",
+  "version": "0.1.0",
+  "description": "Exporter of all ETH receipts",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter spec",
+    "start": "./node_modules/.bin/micro -p 3000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santiment/erc20_transfers_exporter.git"
+  },
+  "author": "Santiment",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/santiment/erc20_transfers_exporter/issues"
+  },
+  "homepage": "https://github.com/santiment/erc20_transfers_exporter#readme",
+  "dependencies": {
+    "@santiment-network/san-exporter": "0.0.6",
+    "jayson": "^2.0.6",
+    "jslint": "^0.12.0",
+    "lodash": "^4.17.15",
+    "micro": "^9.0.0",
+    "web3": "1.0.0-beta.34"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-string": "^1.4.0",
+    "mocha": "^4.0.1",
+    "request": "^2.86.0",
+    "request-promise": "^4.2.2",
+    "seneca-jsonrest-api": "^0.3.1",
+    "test-listen": "^1.1.0"
+  }
+}
