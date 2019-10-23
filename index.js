@@ -1,8 +1,9 @@
 /* jslint es6 */
 "use strict";
-const pkg = require('./package.json');
-const array = require('lodash/array');
-const collection = require('lodash/collection');
+const pkg = require('./package.json')
+const array = require('lodash/array')
+const collection = require('lodash/collection')
+const object = require('lodash/object')
 const { send } = require('micro')
 const url = require('url')
 const Web3 = require('web3')
@@ -10,7 +11,7 @@ const { Exporter } = require('@santiment-network/san-exporter')
 
 const exporter = new Exporter(pkg.name)
 
-const BLOCK_INTERVAL = parseInt(process.env.BLOCK_INTERVAL || "100")
+const BLOCK_INTERVAL = parseInt(process.env.BLOCK_INTERVAL || "50")
 const CONFIRMATIONS = parseInt(process.env.CONFIRMATIONS || "3")
 let lastProcessedBlock = parseInt(process.env.START_BLOCK || "0")
 
@@ -29,11 +30,30 @@ const fetchEthReceipts = (fromBlock, toBlock) => {
 }
 
 function decodeLog(log) {
-  collection.forEach(["blockNumber", "logIndex", "transactionIndex", "transactionLogIndex"],
+  collection.forEach(["blockNumber", "blockHash", "transactionHash", "transactionIndex"],
+    key => object.unset(log, key))
+
+  collection.forEach(["logIndex", "transactionLogIndex"],
     key => log[key] = web3.utils.hexToNumber(log[key])
   )
 
   return log
+}
+
+function columnizeLogs(logs) {
+  if (logs.length == 0) {
+    return []
+  }
+
+  const decodedLogs = collection.map(logs, decodeLog)
+  const logKeys = object.keys(decodedLogs[0])
+  const result = {}
+
+  collection.forEach(logKeys,
+    key => result[`logs.${key}`] = decodedLogs.map(log => log[key])
+  )
+
+  return result
 }
 
 function decodeReceipt(receipt) {
@@ -45,7 +65,8 @@ function decodeReceipt(receipt) {
     key => receipt[key] = web3.utils.hexToNumberString(receipt[key])
   )
 
-  receipt["logs"] = receipt["logs"].map(decodeLog)
+  object.merge(receipt, columnizeLogs(receipt["logs"]))
+  object.unset(receipt, "logs")
 
   return receipt
 }
