@@ -4,8 +4,8 @@
   "description": "Exporter of all ETH receipts",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec",
-    "start": "./node_modules/.bin/micro -p 3000"
+    "test": "mocha --reporter spec",
+    "start": "micro"
   },
   "repository": {
     "type": "git",
