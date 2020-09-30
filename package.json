@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/santiment/erc20_transfers_exporter#readme",
   "dependencies": {
-    "@santiment-network/san-exporter": "0.0.6",
+    "san-exporter": "santiment/san-exporter",
     "jayson": "^2.0.6",
     "jslint": "^0.12.0",
     "lodash": "^4.17.15",

@@ -8,7 +8,7 @@ const { send } = require('micro')
 const url = require('url')
 const Web3 = require('web3')
 const { logger } = require('./logger')
-const { Exporter } = require('@santiment-network/san-exporter')
+const { Exporter } = require('san-exporter')
 
 const exporter = new Exporter(pkg.name)
 
