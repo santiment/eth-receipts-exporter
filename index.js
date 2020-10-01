@@ -9,6 +9,7 @@ const url = require('url')
 const Web3 = require('web3')
 const { logger } = require('./logger')
 const { Exporter } = require('san-exporter')
+const metrics = require('san-exporter/metrics');
 
 const exporter = new Exporter(pkg.name)
 
@@ -81,11 +82,18 @@ async function getReceiptsForBlocks(fromBlock, toBlock) {
 
 async function work() {
   const currentBlock = await web3.eth.getBlockNumber() - CONFIRMATIONS
+  metrics.currentBlock.set(currentBlock)
   logger.info(`Fetching blocks for interval ${lastProcessedBlock}:${currentBlock}`)
 
   while (lastProcessedBlock < currentBlock) {
     const toBlock = Math.min(lastProcessedBlock + BLOCK_INTERVAL, currentBlock)
+    metrics.requestsCounter.inc()
+
+    const requestStartTime = new Date()
+
     const receipts = await getReceiptsForBlocks(lastProcessedBlock + 1, toBlock)
+
+    metrics.requestsResponseTime.observe(new Date() - requestStartTime)
 
     if (receipts.length > 0) {
       logger.info(`Storing ${receipts.length} messages for blocks ${lastProcessedBlock + 1}:${toBlock}`)
@@ -93,6 +101,7 @@ async function work() {
     }
 
     lastProcessedBlock = toBlock
+    metrics.lastExportedBlock.set(lastProcessedBlock)
     await exporter.savePosition(lastProcessedBlock)
   }
 }
@@ -125,6 +134,7 @@ async function fetchLastImportedBlock() {
 const init = async () => {
   await exporter.connect()
   await fetchLastImportedBlock()
+  metrics.startCollection()
   await fetchReceipts()
 }
 
@@ -155,7 +165,9 @@ module.exports = async (request, response) => {
         .then(healthcheckParity())
         .then(() => send(response, 200, "ok"))
         .catch((err) => send(response, 500, `Connection to kafka or parity failed: ${err}`))
-
+    case '/metrics':
+      response.setHeader('Content-Type', metrics.register.contentType)
+      return send(response, 200, metrics.register.metrics())
     default:
       return send(response, 404, 'Not found');
   }
