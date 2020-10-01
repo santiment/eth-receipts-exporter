@@ -4,8 +4,8 @@
   "description": "Exporter of all ETH receipts",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec",
-    "start": "./node_modules/.bin/micro -p 3000"
+    "test": "mocha --reporter spec",
+    "start": "micro"
   },
   "repository": {
     "type": "git",
@@ -18,12 +18,14 @@
   },
   "homepage": "https://github.com/santiment/erc20_transfers_exporter#readme",
   "dependencies": {
-    "@santiment-network/san-exporter": "0.0.6",
+    "san-exporter": "santiment/san-exporter",
     "jayson": "^2.0.6",
     "jslint": "^0.12.0",
     "lodash": "^4.17.15",
     "micro": "^9.0.0",
-    "web3": "1.0.0-beta.34"
+    "web3": "1.0.0-beta.34",
+    "node-json-logger": "0.0.10",
+    "prom-client": "^12.0.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",

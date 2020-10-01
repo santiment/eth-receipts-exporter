@@ -4,6 +4,8 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
+    logging:
+      driver: none
   kafka:
     image: wurstmeister/kafka
     ports:
@@ -13,13 +15,16 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    logging:
+      driver: none
   exporter:
-    build: .
-    volumes:
-      - ./:/app
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
     environment:
       KAFKA_URL: kafka:9092
       ZOOKEEPER_URL: zookeeper:2181
-      PARITY_URL: http://parity-v2-parity.default.svc.cluster.local:8545/
+      PARITY_URL: http://parity.stage.san:30954
       START_BLOCK: 1000000
-    command: ["./wait-for-it.sh", "kafka:9092", "--", "npm", "start"]
+    entrypoint: "/bin/sh"
+    command: ["-c", "docker/wait_for_services.sh && npm start"]
