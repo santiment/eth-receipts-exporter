@@ -8,6 +8,16 @@ const { send } = require('micro')
 const url = require('url')
 const Web3 = require('web3')
 const { logger } = require('./logger')
+
+const {
+  parseEthBlocks,
+  parseReceipts,
+  decodeReceipt,
+  decodeBlock,
+  prepareBlockTimestampsObject,
+  setReceiptsTimestamp
+} = require('./helper')
+
 const { Exporter } = require('san-exporter')
 const metrics = require('san-exporter/metrics');
 
@@ -21,63 +31,50 @@ const PARITY_URL = process.env.PARITY_URL || "http://localhost:8545/";
 logger.info(`Connecting to parity node ${PARITY_URL}`)
 const web3 = new Web3(new Web3.providers.HttpProvider(PARITY_URL))
 const jayson = require('jayson/promise');
+const { time } = require('console');
 const parityClient = jayson.client.http(PARITY_URL);
 
 const fetchEthReceipts = (fromBlock, toBlock) => {
   var batch = [];
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
-    batch.push(parityClient.request('parity_getBlockReceipts', [web3.utils.numberToHex(fromBlock)], undefined, false))
+    batch.push(
+      parityClient.request(
+        'parity_getBlockReceipts',
+        [web3.utils.numberToHex(fromBlock)],
+        undefined,
+        false
+      )
+    )
   }
-  return parityClient.request(batch).then((responses) => responses.map((response) => response["result"]))
+  return parityClient.request(batch).then((responses) => parseReceipts(responses))
 }
 
-function decodeLog(log) {
-  collection.forEach(["blockNumber", "blockHash", "transactionHash", "transactionIndex"],
-    key => object.unset(log, key))
-
-  collection.forEach(["logIndex", "transactionLogIndex"],
-    key => log[key] = web3.utils.hexToNumber(log[key])
-  )
-
-  return log
-}
-
-function columnizeLogs(logs) {
-  if (logs.length == 0) {
-    return []
+const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
+  var batch = [];
+  for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
+    batch.push(
+      parityClient.request(
+        'eth_getBlockByNumber',
+        [web3.utils.numberToHex(fromBlock),
+        true],
+        undefined,
+        false
+      )
+    )
   }
-
-  const decodedLogs = collection.map(logs, decodeLog)
-  const logKeys = object.keys(decodedLogs[0])
-  const result = {}
-
-  collection.forEach(logKeys,
-    key => result[`logs.${key}`] = decodedLogs.map(log => log[key])
-  )
-
-  return result
-}
-
-function decodeReceipt(receipt) {
-  collection.forEach(["blockNumber", "status", "transactionIndex"],
-    key => receipt[key] = web3.utils.hexToNumber(receipt[key])
-  )
-
-  collection.forEach(["cumulativeGasUsed", "gasUsed"],
-    key => receipt[key] = web3.utils.hexToNumberString(receipt[key])
-  )
-
-  object.merge(receipt, columnizeLogs(receipt["logs"]))
-  object.unset(receipt, "logs")
-
-  return receipt
+  return parityClient.request(batch).then((responses) => parseEthBlocks(responses))
 }
 
 async function getReceiptsForBlocks(fromBlock, toBlock) {
   logger.info(`Fetching blocks ${fromBlock}:${toBlock}`)
-  const blocks = await fetchEthReceipts(fromBlock, toBlock)
+  const receipts = await fetchEthReceipts(fromBlock, toBlock)
+  const blocks = await fetchEthBlockTimestamps(fromBlock, toBlock)
+  const decodedReceipts = receipts.map(decodeReceipt)
+  const decodedBlocks = blocks.map(decodeBlock)
 
-  return array.compact(array.flatten(blocks)).map(decodeReceipt)
+  const timestamps = prepareBlockTimestampsObject(decodedBlocks)
+
+  return setReceiptsTimestamp(decodedReceipts, timestamps)
 }
 
 async function work() {
