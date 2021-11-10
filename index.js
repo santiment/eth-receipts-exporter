@@ -23,23 +23,25 @@ const metrics = require('san-exporter/metrics');
 
 const exporter = new Exporter(pkg.name)
 
+const DRY_RUN = parseInt(process.env.DRY_RUN || "1")
 const BLOCK_INTERVAL = parseInt(process.env.BLOCK_INTERVAL || "50")
 const CONFIRMATIONS = parseInt(process.env.CONFIRMATIONS || "3")
 let lastProcessedBlock = parseInt(process.env.START_BLOCK || "0")
+const GET_RECEIPTS_ENDPOINT = process.env.GET_RECEIPTS_ENDPOINT
 
-const PARITY_URL = process.env.PARITY_URL || "http://localhost:8545/";
-logger.info(`Connecting to parity node ${PARITY_URL}`)
-const web3 = new Web3(new Web3.providers.HttpProvider(PARITY_URL))
+const NODE_URL = process.env.NODE_URL || "http://localhost:8545/";
+logger.info(`Connecting to parity node ${NODE_URL}`)
+const web3 = new Web3(new Web3.providers.HttpProvider(NODE_URL))
 const jayson = require('jayson/promise');
 const { time } = require('console');
-const parityClient = jayson.client.http(PARITY_URL);
+const parityClient = jayson.client.http(NODE_URL);
 
 const fetchEthReceipts = (fromBlock, toBlock) => {
   var batch = [];
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
     batch.push(
       parityClient.request(
-        'parity_getBlockReceipts',
+        GET_RECEIPTS_ENDPOINT,
         [web3.utils.numberToHex(fromBlock)],
         undefined,
         false
@@ -94,12 +96,16 @@ async function work() {
 
     if (receipts.length > 0) {
       logger.info(`Storing ${receipts.length} messages for blocks ${lastProcessedBlock + 1}:${toBlock}`)
-      await exporter.sendDataWithKey(receipts, "transactionHash")
+      if (DRY_RUN != 1){
+        await exporter.sendDataWithKey(receipts, "transactionHash")
+      }
     }
 
     lastProcessedBlock = toBlock
     metrics.lastExportedBlock.set(lastProcessedBlock)
-    await exporter.savePosition(lastProcessedBlock)
+    if (DRY_RUN != 1){
+      await exporter.savePosition(lastProcessedBlock)
+    }
   }
 }
 
@@ -123,7 +129,9 @@ async function fetchLastImportedBlock() {
     lastProcessedBlock = lastPosition
     logger.info(`Resuming export from position ${JSON.stringify(lastPosition)}`)
   } else {
-    await exporter.savePosition(lastProcessedBlock)
+    if (DRY_RUN != 1){
+      await exporter.savePosition(lastProcessedBlock)
+    }
     logger.info(`Initialized exporter with initial position ${JSON.stringify(lastProcessedBlock)}`)
   }
 }
