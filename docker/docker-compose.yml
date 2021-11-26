@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 services:
   zookeeper:
     image: wurstmeister/zookeeper
@@ -24,7 +24,8 @@ services:
     environment:
       KAFKA_URL: kafka:9092
       ZOOKEEPER_URL: zookeeper:2181
-      PARITY_URL: http://parity.stage.san:30954
-      START_BLOCK: 1000000
+      NODE_URL: "${NODE_URL}"
+      START_BLOCK: "${START_BLOCK}"
+      GET_RECEIPTS_ENDPOINT: "${GET_RECEIPTS_ENDPOINT}"
     entrypoint: "/bin/sh"
     command: ["-c", "docker/wait_for_services.sh && npm start"]
