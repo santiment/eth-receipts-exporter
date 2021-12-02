@@ -16,7 +16,7 @@ $ ./bin/run_eth.sh
 The service requires exactly parity, as GETH does not implement the API used in it.
 
 
-## Run Polgon
+## Run Polygon
 
 You need to have access to a polygon(bor) full node. By default in run_polygon.sh `NODE_URL` points to
 the staging instance.
