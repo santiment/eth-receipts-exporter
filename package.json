@@ -21,7 +21,7 @@
     "san-exporter": "santiment/san-exporter",
     "jayson": "^2.0.6",
     "jslint": "^0.12.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "micro": "^9.0.0",
     "web3": "1.0.0-beta.34",
     "node-json-logger": "0.0.10",
