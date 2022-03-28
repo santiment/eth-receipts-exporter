@@ -18,19 +18,19 @@
   },
   "homepage": "https://github.com/santiment/erc20_transfers_exporter#readme",
   "dependencies": {
-    "san-exporter": "santiment/san-exporter",
-    "jayson": "^2.0.6",
+    "jayson": "^3.5.2",
     "jslint": "^0.12.0",
     "lodash": "^4.17.21",
     "micro": "^9.0.0",
-    "web3": "1.0.0-beta.34",
-    "node-json-logger": "0.0.10",
-    "prom-client": "^12.0.0"
+    "node-json-logger": "0.0.17",
+    "prom-client": "^13.0.0",
+    "san-exporter": "git+https://github.com/santiment/san-exporter.git",
+    "web3": "^1.2.11"
   },
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-string": "^1.4.0",
-    "mocha": "^4.0.1",
+    "mocha": "^8.3.2",
     "request": "^2.86.0",
     "request-promise": "^4.2.2",
     "seneca-jsonrest-api": "^0.3.1",
