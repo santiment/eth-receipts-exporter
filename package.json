@@ -4,7 +4,8 @@
   "description": "Exporter of all ETH receipts",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --reporter spec",
+    "test": "mocha --recursive --reporter spec",
+    "lint": "eslint '**/*.js'",
     "start": "micro"
   },
   "repository": {
