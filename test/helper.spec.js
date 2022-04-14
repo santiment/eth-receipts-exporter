@@ -123,9 +123,9 @@ context('receipt with logs', () => {
     blockHash:"0xa6e57d9dc2447ba63bef1dfd03b7885cf71753a93260f66016463b2e3b32d82e",
     blockNumber:1004250,
     contractAddress:null,
-    cumulativeGasUsed:"148216",
+    cumulativeGasUsed:"0x242F8",
     from:"0xae04420f8e66003b201ac5ec59cc529c2ec5b12f",
-    gasUsed:"64216",
+    gasUsed:"0xFAD8",
     logs:[
       {
         address:"0x6e3ded77aa29924ba55a87c23ee7d985b07212c6",

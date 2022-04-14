@@ -27,5 +27,6 @@ services:
       NODE_URL: "${NODE_URL}"
       START_BLOCK: "${START_BLOCK}"
       GET_RECEIPTS_ENDPOINT: "${GET_RECEIPTS_ENDPOINT}"
+      DRY_RUN: "${DRY_RUN}"
     entrypoint: "/bin/sh"
     command: ["-c", "docker/wait_for_services.sh && npm start"]

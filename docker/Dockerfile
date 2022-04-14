@@ -1,34 +1,32 @@
-FROM node:10.14.1-alpine AS builder
+FROM node:16.5-buster-slim AS builder
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
 
-RUN apk --no-cache add \
-  bash \
-  g++ \
-  ca-certificates \
-  lz4-dev \
-  musl-dev \
-  cyrus-sasl-dev \
-  openssl-dev \
-  make \
-  python \
-  git
+RUN apt-get update; \
+    apt-get install -y bash \
+      g++ \
+      ca-certificates \
+      musl-dev \
+      make \
+      git \
+      python3
 
 WORKDIR /opt
 
 COPY package.json package-lock.json* ./
 
-RUN npm ci
+RUN npm ci --${NODE_ENV}
 RUN npm cache clean --force
 
-FROM node:10.14.1-alpine
+FROM node:16.5-buster-slim
 
-RUN apk --no-cache add libsasl openssl lz4-libs netcat-openbsd
+RUN apt-get update; \
+    apt-get install -y openssl netcat-openbsd
 
 WORKDIR /opt/app
 
-ENV PATH /opt/node_modules/.bin:$PATH
+ENV PATH /opt/node_modules/.bin:${PATH}
 
 COPY . /opt/app
 
