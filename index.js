@@ -1,13 +1,10 @@
 /* jslint es6 */
-"use strict";
-const pkg = require('./package.json')
-const array = require('lodash/array')
-const collection = require('lodash/collection')
-const object = require('lodash/object')
-const { send } = require('micro')
-const url = require('url')
-const Web3 = require('web3')
-const { logger } = require('./logger')
+"use strict"
+const pkg = require("./package.json")
+const { send } = require("micro")
+const url = require("url")
+const Web3 = require("web3")
+const { logger } = require("./logger")
 
 const {
   parseEthBlocks,
@@ -16,10 +13,10 @@ const {
   decodeBlock,
   prepareBlockTimestampsObject,
   setReceiptsTimestamp
-} = require('./helper')
+} = require("./helper")
 
-const { Exporter } = require('san-exporter')
-const metrics = require('san-exporter/metrics');
+const { Exporter } = require("san-exporter")
+const metrics = require("san-exporter/metrics")
 
 const exporter = new Exporter(pkg.name)
 
@@ -29,15 +26,15 @@ const CONFIRMATIONS = parseInt(process.env.CONFIRMATIONS || "3")
 let lastProcessedBlock = parseInt(process.env.START_BLOCK || "0")
 const GET_RECEIPTS_ENDPOINT = process.env.GET_RECEIPTS_ENDPOINT
 
-const NODE_URL = process.env.NODE_URL || "http://localhost:8545/";
+const NODE_URL = process.env.NODE_URL || "http://localhost:8545/"
 logger.info(`Connecting to parity node ${NODE_URL}`)
+
 const web3 = new Web3(new Web3.providers.HttpProvider(NODE_URL))
-const jayson = require('jayson/promise');
-const { time } = require('console');
-const parityClient = jayson.client.http(NODE_URL);
+const jayson = require("jayson/promise")
+const parityClient = jayson.client.http(NODE_URL)
 
 const fetchEthReceipts = (fromBlock, toBlock) => {
-  var batch = [];
+  var batch = []
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
     batch.push(
       parityClient.request(
@@ -52,11 +49,11 @@ const fetchEthReceipts = (fromBlock, toBlock) => {
 }
 
 const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
-  var batch = [];
+  var batch = []
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
     batch.push(
       parityClient.request(
-        'eth_getBlockByNumber',
+        "eth_getBlockByNumber",
         [web3.utils.numberToHex(fromBlock),
         true],
         undefined,
@@ -96,14 +93,14 @@ async function work() {
 
     if (receipts.length > 0) {
       logger.info(`Storing ${receipts.length} messages for blocks ${lastProcessedBlock + 1}:${toBlock}`)
-      if (DRY_RUN != 1){
+      if (DRY_RUN !== 1){
         await exporter.sendDataWithKey(receipts, "transactionHash")
       }
     }
 
     lastProcessedBlock = toBlock
     metrics.lastExportedBlock.set(lastProcessedBlock)
-    if (DRY_RUN != 1){
+    if (DRY_RUN !== 1){
       await exporter.savePosition(lastProcessedBlock)
     }
   }
@@ -129,7 +126,7 @@ async function fetchLastImportedBlock() {
     lastProcessedBlock = lastPosition
     logger.info(`Resuming export from position ${JSON.stringify(lastPosition)}`)
   } else {
-    if (DRY_RUN != 1){
+    if (DRY_RUN !== 1){
       await exporter.savePosition(lastProcessedBlock)
     }
     logger.info(`Initialized exporter with initial position ${JSON.stringify(lastProcessedBlock)}`)
@@ -153,27 +150,26 @@ const healthcheckParity = () => {
 const healthcheckKafka = () => {
   return new Promise((resolve, reject) => {
     if (exporter.producer.isConnected()) {
-      resolve();
+      resolve()
     } else {
-      reject("Kafka client is not connected to any brokers");
+      reject("Kafka client is not connected to any brokers")
     }
-  });
-};
+  })
+}
 
 module.exports = async (request, response) => {
-  const req = url.parse(request.url, true);
-  const q = req.query;
+  const req = url.parse(request.url, true)
 
   switch (req.pathname) {
-    case '/healthcheck':
+    case "/healthcheck":
       return healthcheckKafka()
         .then(healthcheckParity())
         .then(() => send(response, 200, "ok"))
         .catch((err) => send(response, 500, `Connection to kafka or parity failed: ${err}`))
-    case '/metrics':
-      response.setHeader('Content-Type', metrics.register.contentType)
+    case "/metrics":
+      response.setHeader("Content-Type", metrics.register.contentType)
       return send(response, 200, metrics.register.metrics())
     default:
-      return send(response, 404, 'Not found');
+      return send(response, 404, "Not found")
   }
 }
