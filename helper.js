@@ -26,9 +26,15 @@ const setReceiptsTimestamp = (receipts, timestamps) => {
   return collection.forEach(receipts, receipt =>  receipt['timestamp'] = timestamps[receipt.blockNumber])
 }
 
-const parseReceipts = (responses) => {
+const parseReceipts = (responses, avax) => {
   const receipts = responses.map((response) => response['result'])
-  return array.compact(array.flatten(receipts))
+  if (!avax){
+    return array.compact(array.flatten(receipts))
+  }
+  else{
+    return receipts
+  }
+
 }
 
 const decodeReceipt = (receipt) => {

@@ -28,6 +28,7 @@ const BLOCK_INTERVAL = parseInt(process.env.BLOCK_INTERVAL || "50")
 const CONFIRMATIONS = parseInt(process.env.CONFIRMATIONS || "3")
 let lastProcessedBlock = parseInt(process.env.START_BLOCK || "0")
 const GET_RECEIPTS_ENDPOINT = process.env.GET_RECEIPTS_ENDPOINT
+const AVAX = parseInt(process.env.AVAX || "0")
 
 const NODE_URL = process.env.NODE_URL || "http://localhost:8545/";
 logger.info(`Connecting to parity node ${NODE_URL}`)
@@ -36,19 +37,40 @@ const jayson = require('jayson/promise');
 const { time } = require('console');
 const parityClient = jayson.client.http(NODE_URL);
 
-const fetchEthReceipts = (fromBlock, toBlock) => {
+const fetchEthReceipts = (fromBlock, toBlock, blocks) => {
   var batch = [];
-  for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
-    batch.push(
-      parityClient.request(
-        GET_RECEIPTS_ENDPOINT,
-        [web3.utils.numberToHex(fromBlock)],
-        undefined,
-        false
+  if(!AVAX)
+  {
+    for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
+      batch.push(
+        parityClient.request(
+          GET_RECEIPTS_ENDPOINT,
+          [web3.utils.numberToHex(fromBlock)],
+          undefined,
+          false
+        )
       )
-    )
+    }
+  } else{
+    var block = 0;
+    for (block; block < blocks.length; block++) {
+      var trx = 0;
+      var transactions = blocks[block]['transactions']
+      if (transactions.length == 0) continue;
+      for (trx; trx < transactions.length; trx++) {
+        var transactionHash = transactions[trx]['hash']
+        batch.push(
+          parityClient.request(
+            GET_RECEIPTS_ENDPOINT,
+            [transactionHash],
+            undefined,
+            false
+          )
+        )
+      }
+    }
   }
-  return parityClient.request(batch).then((responses) => parseReceipts(responses))
+  return parityClient.request(batch).then((responses) => parseReceipts(responses, AVAX))
 }
 
 const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
@@ -69,8 +91,8 @@ const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
 
 async function getReceiptsForBlocks(fromBlock, toBlock) {
   logger.info(`Fetching blocks ${fromBlock}:${toBlock}`)
-  const receipts = await fetchEthReceipts(fromBlock, toBlock)
   const blocks = await fetchEthBlockTimestamps(fromBlock, toBlock)
+  const receipts = await fetchEthReceipts(fromBlock, toBlock, blocks)
   const decodedReceipts = receipts.map(decodeReceipt)
   const decodedBlocks = blocks.map(decodeBlock)
 
