@@ -12,6 +12,7 @@ const { logger } = require('./logger')
 const {
   parseEthBlocks,
   parseReceipts,
+  parseTransactionReceipts,
   decodeReceipt,
   decodeBlock,
   prepareBlockTimestampsObject,
@@ -37,40 +38,39 @@ const jayson = require('jayson/promise');
 const { time } = require('console');
 const parityClient = jayson.client.http(NODE_URL);
 
-const fetchEthReceipts = (fromBlock, toBlock, blocks) => {
-  var batch = [];
-  if(!AVAX)
-  {
-    for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
+const fetchEthReceipts = (fromBlock, toBlock) => {
+  var batch = []
+  for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
+    batch.push(
+      parityClient.request(
+        GET_RECEIPTS_ENDPOINT,
+        [web3.utils.numberToHex(fromBlock)],
+        undefined,
+        false
+      )
+    )
+  }
+  return parityClient.request(batch).then((responses) => parseReceipts(responses))
+}
+
+const fetchAvaxReceipts = (fromBlock, toBlock, blocks) => {
+  var batch = []
+  for (let block = 0; block < blocks.length; block++) {
+    var transactions = blocks[block]['transactions']
+    if (transactions.length == 0) continue
+    for (let trx = 0; trx < transactions.length; trx++) {
+      var transactionHash = transactions[trx]['hash']
       batch.push(
         parityClient.request(
           GET_RECEIPTS_ENDPOINT,
-          [web3.utils.numberToHex(fromBlock)],
+          [transactionHash],
           undefined,
           false
         )
       )
     }
-  } else{
-    var block = 0;
-    for (block; block < blocks.length; block++) {
-      var trx = 0;
-      var transactions = blocks[block]['transactions']
-      if (transactions.length == 0) continue;
-      for (trx; trx < transactions.length; trx++) {
-        var transactionHash = transactions[trx]['hash']
-        batch.push(
-          parityClient.request(
-            GET_RECEIPTS_ENDPOINT,
-            [transactionHash],
-            undefined,
-            false
-          )
-        )
-      }
-    }
   }
-  return parityClient.request(batch).then((responses) => parseReceipts(responses, AVAX))
+  return (!batch.length) ? [] : parityClient.request(batch).then((responses) => parseTransactionReceipts(responses))
 }
 
 const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
@@ -92,7 +92,15 @@ const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
 async function getReceiptsForBlocks(fromBlock, toBlock) {
   logger.info(`Fetching blocks ${fromBlock}:${toBlock}`)
   const blocks = await fetchEthBlockTimestamps(fromBlock, toBlock)
-  const receipts = await fetchEthReceipts(fromBlock, toBlock, blocks)
+  var receipts
+
+  if(!AVAX) {
+    receipts = await fetchEthReceipts(fromBlock, toBlock)
+  }
+  else {
+    receipts = await fetchAvaxReceipts(fromBlock, toBlock, blocks)
+  }
+
   const decodedReceipts = receipts.map(decodeReceipt)
   const decodedBlocks = blocks.map(decodeBlock)
 
