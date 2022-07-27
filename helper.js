@@ -26,6 +26,11 @@ const setReceiptsTimestamp = (receipts, timestamps) => {
   return collection.forEach(receipts, receipt =>  receipt['timestamp'] = timestamps[receipt.blockNumber])
 }
 
+const parseTransactionReceipts = (responses) => {
+  const receipts = responses.map((response) => response['result'])
+  return receipts
+}
+
 const parseReceipts = (responses) => {
   const receipts = responses.map((response) => response['result'])
   return array.compact(array.flatten(receipts))
@@ -73,6 +78,7 @@ function decodeLog(log) {
 module.exports = {
   parseEthBlocks: parseEthBlocks,
   parseReceipts: parseReceipts,
+  parseTransactionReceipts: parseTransactionReceipts,
   decodeReceipt: decodeReceipt,
   decodeBlock: decodeBlock,
   prepareBlockTimestampsObject: prepareBlockTimestampsObject,
