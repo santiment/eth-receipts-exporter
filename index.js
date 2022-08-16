@@ -34,7 +34,7 @@ const jayson = require("jayson/promise")
 const parityClient = jayson.client.http(NODE_URL)
 
 const fetchEthReceipts = (fromBlock, toBlock) => {
-  var batch = []
+  const batch = []
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
     batch.push(
       parityClient.request(
@@ -49,7 +49,7 @@ const fetchEthReceipts = (fromBlock, toBlock) => {
 }
 
 const fetchEthBlockTimestamps = (fromBlock, toBlock) => {
-  var batch = []
+  const batch = []
   for (fromBlock; fromBlock < toBlock + 1; fromBlock++) {
     batch.push(
       parityClient.request(
@@ -93,14 +93,14 @@ async function work() {
 
     if (receipts.length > 0) {
       logger.info(`Storing ${receipts.length} messages for blocks ${lastProcessedBlock + 1}:${toBlock}`)
-      if (DRY_RUN !== 1){
+      if (DRY_RUN !== 1) {
         await exporter.sendDataWithKey(receipts, "transactionHash")
       }
     }
 
     lastProcessedBlock = toBlock
     metrics.lastExportedBlock.set(lastProcessedBlock)
-    if (DRY_RUN !== 1){
+    if (DRY_RUN !== 1) {
       await exporter.savePosition(lastProcessedBlock)
     }
   }
@@ -120,13 +120,13 @@ const fetchReceipts = () => {
 }
 
 async function fetchLastImportedBlock() {
-  const lastPosition = await exporter.getLastPosition()
+  const lastPosition = parseInt(await exporter.getLastPosition())
 
   if (lastPosition) {
     lastProcessedBlock = lastPosition
     logger.info(`Resuming export from position ${JSON.stringify(lastPosition)}`)
   } else {
-    if (DRY_RUN !== 1){
+    if (DRY_RUN !== 1) {
       await exporter.savePosition(lastProcessedBlock)
     }
     logger.info(`Initialized exporter with initial position ${JSON.stringify(lastProcessedBlock)}`)
