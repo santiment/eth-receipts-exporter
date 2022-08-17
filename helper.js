@@ -1,8 +1,9 @@
-const Web3 = require('web3')
-const lang = require('lodash/lang')
-const array = require('lodash/array')
-const collection = require('lodash/collection')
-const object = require('lodash/object')
+const Web3 = require("web3")
+const lang = require("lodash/lang")
+const array = require("lodash/array")
+const collection = require("lodash/collection")
+const object = require("lodash/object")
+
 
 const parseEthBlocks = (responses) => {
   return responses.map((response) => response["result"])
@@ -23,7 +24,7 @@ const prepareBlockTimestampsObject = (blocks) => {
 }
 
 const setReceiptsTimestamp = (receipts, timestamps) => {
-  return collection.forEach(receipts, receipt =>  receipt['timestamp'] = timestamps[receipt.blockNumber])
+  return collection.forEach(receipts, receipt =>  receipt["timestamp"] = timestamps[receipt.blockNumber])
 }
 
 const parseTransactionReceipts = (responses) => {
@@ -32,7 +33,7 @@ const parseTransactionReceipts = (responses) => {
 }
 
 const parseReceipts = (responses) => {
-  const receipts = responses.map((response) => response['result'])
+  const receipts = responses.map((response) => response["result"])
   return array.compact(array.flatten(receipts))
 }
 
