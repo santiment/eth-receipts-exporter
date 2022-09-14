@@ -26,7 +26,7 @@ const BLOCK_INTERVAL = parseInt(process.env.BLOCK_INTERVAL || "50")
 const CONFIRMATIONS = parseInt(process.env.CONFIRMATIONS || "3")
 let lastProcessedBlock = parseInt(process.env.START_BLOCK || "0")
 const GET_RECEIPTS_ENDPOINT = process.env.GET_RECEIPTS_ENDPOINT
-const AVAX = parseInt(process.env.AVAX || "0")
+const TRANSACTION = parseInt(process.env.TRANSACTION || "0")
 
 const NODE_URL = process.env.NODE_URL || "http://localhost:8545/"
 logger.info(`Connecting to parity node ${NODE_URL}`)
@@ -50,7 +50,7 @@ const fetchEthReceipts = (fromBlock, toBlock) => {
   return parityClient.request(batch).then((responses) => parseReceipts(responses))
 }
 
-const fetchAvaxReceipts = (fromBlock, toBlock, blocks) => {
+const fetchReceiptsFromTransaction = (fromBlock, toBlock, blocks) => {
   var batch = []
   for (let block = 0; block < blocks.length; block++) {
     var transactions = blocks[block]['transactions']
@@ -91,11 +91,11 @@ async function getReceiptsForBlocks(fromBlock, toBlock) {
   const blocks = await fetchEthBlockTimestamps(fromBlock, toBlock)
   var receipts
 
-  if(!AVAX) {
+  if(!TRANSACTION) {
     receipts = await fetchEthReceipts(fromBlock, toBlock)
   }
   else {
-    receipts = await fetchAvaxReceipts(fromBlock, toBlock, blocks)
+    receipts = await fetchReceiptsFromTransaction(fromBlock, toBlock, blocks)
   }
 
   const decodedReceipts = receipts.map(decodeReceipt)
