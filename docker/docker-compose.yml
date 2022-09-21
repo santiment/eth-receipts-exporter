@@ -27,7 +27,7 @@ services:
       NODE_URL: "${NODE_URL}"
       START_BLOCK: "${START_BLOCK}"
       KAFKA_TOPIC: "${KAFKA_TOPIC}"
-      AVAX: "${AVAX}"
+      TRANSACTION: "${TRANSACTION}"
       GET_RECEIPTS_ENDPOINT: "${GET_RECEIPTS_ENDPOINT}"
       DRY_RUN: "${DRY_RUN}"
     entrypoint: "/bin/sh"
