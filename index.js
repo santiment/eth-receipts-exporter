@@ -33,7 +33,7 @@ logger.info(`Connecting to parity node ${NODE_URL}`)
 
 const web3 = new Web3(new Web3.providers.HttpProvider(NODE_URL))
 const jayson = require("jayson/promise")
-const parityClient = jayson.client.http(NODE_URL)
+const parityClient = jayson.client.https(NODE_URL)
 
 const fetchEthReceipts = (fromBlock, toBlock) => {
   const batch = []
